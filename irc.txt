@@ -1,0 +1,41 @@
+RESOURCES:
+
+http://stackoverflow.com/questions/144049/recommended-irc-server-ircd-for-a-small-site
+./ngircd -s -n
+
+example comms:
+PASS :[password]
+NICK :[nickname]
+USER [username] [mode] * :[realname]
+
+NOTES:
+*everything based on lines
+*\r\n line seperators
+*Nicks uniquely ident user, max 9 chars (for now)
+*Services uniq ident by 9 char name
+*Channels 50 char name, [&#+!][^ ^G,\x07]*
+*Messages are of the form "<PREFIX> [CMD] [Params]\r\n"
+**At most 15 params, sep by a space
+**async. client should expect a reply to a commad, no guarantee.
+**At most 510 chars
+**empty messages ignored
+*Prefix will start with a ':', clients should not use a prefix.
+**specs true origin of the message.
+
+ message    =  [ ":" prefix SPACE ] command [ params ] crlf
+ prefix     =  servername / ( nickname [ [ "!" user ] "@" host ] )
+ command    =  1*letter / 3digit
+ params     =  *14( SPACE middle ) [ SPACE ":" trailing ] 
+           =/ 14( SPACE middle ) [ SPACE [ ":" ] trailing ]
+		   ; params either list of up to 14 params, a semicolon
+		   ; a trailing message. Or exactly 14 commands and a trailing
+		   ; message (So can have spaces in params)
+ nospcrlfcl =  %x01-09 / %x0B-0C / %x0E-1F / %x21-39 / %x3B-FF
+               ; any octet except NUL, CR, LF, " " and ":"
+		   ; NUL not allowed because of complications with C
+ middle     =  nospcrlfcl *( ":" / nospcrlfcl )
+ trailing   =  *( ":" / " " / nospcrlfcl )
+ SPACE      =  %x20        ; space character
+ crlf       =  %x0D %x0A   ; "carriage return" "linefeed"
+
+
